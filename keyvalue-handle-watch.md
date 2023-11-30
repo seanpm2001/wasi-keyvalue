@@ -5,7 +5,7 @@
 <li>interface <a href="#wasi:io_error_0.2.0_rc_2023_11_10"><code>wasi:io/error@0.2.0-rc-2023-11-10</code></a></li>
 <li>interface <a href="#wasi:io_poll_0.2.0_rc_2023_11_10"><code>wasi:io/poll@0.2.0-rc-2023-11-10</code></a></li>
 <li>interface <a href="#wasi:io_streams_0.2.0_rc_2023_11_10"><code>wasi:io/streams@0.2.0-rc-2023-11-10</code></a></li>
-<li>interface <a href="#wasi:keyvalue_wasi_cloud_error"><code>wasi:keyvalue/wasi-cloud-error</code></a></li>
+<li>interface <a href="#wasi:keyvalue_wasi_keyvalue_error"><code>wasi:keyvalue/wasi-keyvalue-error</code></a></li>
 <li>interface <a href="#wasi:keyvalue_types"><code>wasi:keyvalue/types</code></a></li>
 <li>interface <a href="#wasi:keyvalue_readwrite"><code>wasi:keyvalue/readwrite</code></a></li>
 <li>interface <a href="#wasi:keyvalue_atomic"><code>wasi:keyvalue/atomic</code></a></li>
@@ -22,21 +22,7 @@
 <hr />
 <h3>Types</h3>
 <h4><a name="error"><code>resource error</code></a></h4>
-<p>A resource which represents some error information.</p>
-<p>The only method provided by this resource is <code>to-debug-string</code>,
-which provides some human-readable information about the error.</p>
-<p>In the <code>wasi:io</code> package, this resource is returned through the
-<code>wasi:io/streams/stream-error</code> type.</p>
-<p>To provide more specific error information, other interfaces may
-provide functions to further &quot;downcast&quot; this error into more specific
-error information. For example, <a href="#error"><code>error</code></a>s returned in streams derived
-from filesystem types to be described using the filesystem's own
-error-code type, using the function
-<code>wasi:filesystem/types/filesystem-error-code</code>, which takes a parameter
-<code>borrow&lt;error&gt;</code> and returns
-<code>option&lt;wasi:filesystem/types/error-code&gt;</code>.</p>
-<h2>The set of functions which can &quot;downcast&quot; an <a href="#error"><code>error</code></a> into a more
-concrete type is open.</h2>
+<hr />
 <h3>Functions</h3>
 <h4><a name="method_error.to_debug_string"><code>[method]error.to-debug-string: func</code></a></h4>
 <p>Returns a string that is suitable to assist humans in debugging
@@ -59,7 +45,7 @@ at once.</p>
 <hr />
 <h3>Types</h3>
 <h4><a name="pollable"><code>resource pollable</code></a></h4>
-<h2><a href="#pollable"><code>pollable</code></a> epresents a single I/O event which may be ready, or not.</h2>
+<hr />
 <h3>Functions</h3>
 <h4><a name="method_pollable.ready"><code>[method]pollable.ready: func</code></a></h4>
 <p>Return the readiness of a pollable. This function never blocks.</p>
@@ -133,21 +119,8 @@ future operations.
 </li>
 </ul>
 <h4><a name="input_stream"><code>resource input-stream</code></a></h4>
-<p>An input bytestream.</p>
-<p><a href="#input_stream"><code>input-stream</code></a>s are <em>non-blocking</em> to the extent practical on underlying
-platforms. I/O operations always return promptly; if fewer bytes are
-promptly available than requested, they return the number of bytes promptly
-available, which could even be zero. To wait for data to be available,
-use the <code>subscribe</code> function to obtain a <a href="#pollable"><code>pollable</code></a> which can be polled
-for using <code>wasi:io/poll</code>.</p>
 <h4><a name="output_stream"><code>resource output-stream</code></a></h4>
-<p>An output bytestream.</p>
-<h2><a href="#output_stream"><code>output-stream</code></a>s are <em>non-blocking</em> to the extent practical on
-underlying platforms. Except where specified otherwise, I/O operations also
-always return promptly, after the number of bytes that can be written
-promptly, which could even be zero. To wait for the stream to be ready to
-accept data, the <code>subscribe</code> function to obtain a <a href="#pollable"><code>pollable</code></a> which can be
-polled for using <code>wasi:io/poll</code>.</h2>
+<hr />
 <h3>Functions</h3>
 <h4><a name="method_input_stream.read"><code>[method]input-stream.read: func</code></a></h4>
 <p>Perform a non-blocking read from the stream.</p>
@@ -419,15 +392,25 @@ is ready for reading, before performing the <code>splice</code>.</p>
 <ul>
 <li><a name="method_output_stream.blocking_splice.0"></a> result&lt;<code>u64</code>, <a href="#stream_error"><a href="#stream_error"><code>stream-error</code></a></a>&gt;</li>
 </ul>
-<h2><a name="wasi:keyvalue_wasi_cloud_error">Import interface wasi:keyvalue/wasi-cloud-error</a></h2>
+<h2><a name="wasi:keyvalue_wasi_keyvalue_error">Import interface wasi:keyvalue/wasi-keyvalue-error</a></h2>
 <hr />
 <h3>Types</h3>
 <h4><a name="error"><code>type error</code></a></h4>
 <p><code>u32</code></p>
 <p>An error resource type for keyvalue operations.
-Currently, this provides only one function to return a string representation
+<p>Common errors:</p>
+<ul>
+<li>Connectivity errors (e.g. network errors): when the client cannot establish
+a connection to the keyvalue service.</li>
+<li>Autnetication and Authorization errors: when the client fails to authenticate
+or does not have the required permissions to perform the operation.</li>
+<li>Data errors: when the client sends incompatible or corrupted data.</li>
+<li>Resource errors: when the system runs out of resources (e.g. memory).</li>
+<li>Internal errors: unexpected errors on the server side.</li>
+</ul>
+<p>Currently, this provides only one function to return a string representation
 of the error. In the future, this will be extended to provide more information
-about the error.
+about the error.</p>
 <hr />
 <h3>Functions</h3>
 <h4><a name="drop_error"><code>drop-error: func</code></a></h4>
@@ -607,9 +590,11 @@ value as an input-stream.</li>
 ----
 <h3>Functions</h3>
 <h4><a name="get"><code>get: func</code></a></h4>
-<p>Get the value associated with the key in the bucket. It returns a incoming-value
-that can be consumed to get the value.</p>
-<p>If the key does not exist in the bucket, it returns an error.</p>
+<p>Get the value associated with the key in the bucket.</p>
+<p>The value is returned as an option. If the key-value pair exists in the
+bucket, it returns ok with the value. If the key does not exist in the
+bucket, it returns ok with none.</p>
+<p>If any other error occurs, it returns an error.</p>
 <h5>Params</h5>
 <ul>
 <li><a name="get.bucket"><a href="#bucket"><code>bucket</code></a></a>: <a href="#bucket"><a href="#bucket"><code>bucket</code></a></a></li>
@@ -617,13 +602,13 @@ that can be consumed to get the value.</p>
 </ul>
 <h5>Return values</h5>
 <ul>
-<li><a name="get.0"></a> result&lt;<a href="#incoming_value"><a href="#incoming_value"><code>incoming-value</code></a></a>, <a href="#error"><a href="#error"><code>error</code></a></a>&gt;</li>
+<li><a name="get.0"></a> result&lt;option&lt;<a href="#incoming_value"><a href="#incoming_value"><code>incoming-value</code></a></a>&gt;, <a href="#error"><a href="#error"><code>error</code></a></a>&gt;</li>
 </ul>
 <h4><a name="set"><code>set: func</code></a></h4>
 <p>Set the value associated with the key in the bucket. If the key already
 exists in the bucket, it overwrites the value.</p>
-<p>If the key does not exist in the bucket, it creates a new key-value pair.
-If any other error occurs, it returns an error.</p>
+<p>If the key does not exist in the bucket, it creates a new key-value pair.</p>
+<p>If any other error occurs, it returns an error.</p>
 <h5>Params</h5>
 <ul>
 <li><a name="set.bucket"><a href="#bucket"><code>bucket</code></a></a>: <a href="#bucket"><a href="#bucket"><code>bucket</code></a></a></li>
@@ -636,7 +621,8 @@ If any other error occurs, it returns an error.</p>
 </ul>
 <h4><a name="delete"><code>delete: func</code></a></h4>
 <p>Delete the key-value pair associated with the key in the bucket.</p>
-<p>If the key does not exist in the bucket, it returns an error.</p>
+<p>If the key does not exist in the bucket, it does nothing.</p>
+<p>If any other error occurs, it returns an error.</p>
 <h5>Params</h5>
 <ul>
 <li><a name="delete.bucket"><a href="#bucket"><code>bucket</code></a></a>: <a href="#bucket"><a href="#bucket"><code>bucket</code></a></a></li>
@@ -648,6 +634,9 @@ If any other error occurs, it returns an error.</p>
 </ul>
 <h4><a name="exists"><code>exists: func</code></a></h4>
 <p>Check if the key exists in the bucket.</p>
+<p>If the key exists in the bucket, it returns ok with true. If the key does
+not exist in the bucket, it returns ok with false.</p>
+<p>If any other error occurs, it returns an error.</p>
 <h5>Params</h5>
 <ul>
 <li><a name="exists.bucket"><a href="#bucket"><code>bucket</code></a></a>: <a href="#bucket"><a href="#bucket"><code>bucket</code></a></a></li>
@@ -659,6 +648,10 @@ If any other error occurs, it returns an error.</p>
 </ul>
 <h2><a name="wasi:keyvalue_atomic">Import interface wasi:keyvalue/atomic</a></h2>
 <p>A keyvalue interface that provides atomic operations.</p>
+<p>Atomic operations are single, indivisible operations. When a fault causes
+an atomic operation to fail, it will appear to the invoker of the atomic
+operation that the action either completed successfully or did nothing
+at all.</p>
 <hr />
 <h3>Types</h3>
 <h4><a name="bucket"><code>type bucket</code></a></h4>
@@ -674,7 +667,7 @@ If any other error occurs, it returns an error.</p>
 <h3>Functions</h3>
 <h4><a name="increment"><code>increment: func</code></a></h4>
 <p>Atomically increment the value associated with the key in the bucket by the
-given delta. It returns the new value.</p>
+given delta. It returns the new value. This is single, indivisible operation.</p>
 <p>If the key does not exist in the bucket, it creates a new key-value pair
 with the value set to the given delta.</p>
 <p>If any other error occurs, it returns an error.</p>
@@ -689,9 +682,13 @@ with the value set to the given delta.</p>
 <li><a name="increment.0"></a> result&lt;<code>u64</code>, <a href="#error"><a href="#error"><code>error</code></a></a>&gt;</li>
 </ul>
 <h4><a name="compare_and_swap"><code>compare-and-swap: func</code></a></h4>
-<p>Atomically compare and swap the value associated with the key in the bucket.
-It returns a boolean indicating if the swap was successful.</p>
-<p>If the key does not exist in the bucket, it returns an error.</p>
+<p>Compare-and-swap (CAS) atomically updates the value associated with the key
+in the bucket if the value matches the old value. This operation returns
+Ok(true) if the swap was successful, Ok(false) if the value did not match,</p>
+<p>A successful CAS operation means the current value matched the <code>old</code> value
+and was replaced with the <code>new</code> value.</p>
+<p>If the key does not exist in the bucket, it returns Ok(false).</p>
+<p>If any other error occurs, it returns an error.</p>
 <h5>Params</h5>
 <ul>
 <li><a name="compare_and_swap.bucket"><a href="#bucket"><code>bucket</code></a></a>: <a href="#bucket"><a href="#bucket"><code>bucket</code></a></a></li>
@@ -705,6 +702,22 @@ It returns a boolean indicating if the swap was successful.</p>
 </ul>
 <h2><a name="wasi:keyvalue_batch">Import interface wasi:keyvalue/batch</a></h2>
 <p>A keyvalue interface that provides batch operations.</p>
+<p>A batch operation is an operation that operates on multiple keys at once.</p>
+<p>Batch operations are useful for reducing network round-trip time. For example,
+if you want to get the values associated with 100 keys, you can either do 100 get
+operations or you can do 1 batch get operation. The batch operation is
+faster because it only needs to make 1 network call instead of 100.</p>
+<p>A batch operation does not guarantee atomicity, meaning that if the batch
+operation fails, some of the keys may have been modified and some may not.
+Transactional operations are being worked on and will be added in the future to
+provide atomicity.</p>
+<p>Data consistency in a key value store refers to the gaurantee that once a
+write operation completes, all subsequent read operations will return the
+value that was written.</p>
+<p>The level of consistency in batch operations can vary depending on the
+implementation. This interface does not guarantee strong consistency, meaning
+that if a write operation completes, subsequent read operations may not return
+the value that was written.</p>
 <hr />
 <h3>Types</h3>
 <h4><a name="bucket"><code>type bucket</code></a></h4>
@@ -729,8 +742,12 @@ It returns a boolean indicating if the swap was successful.</p>
 <h3>Functions</h3>
 <h4><a name="get_many"><code>get-many: func</code></a></h4>
 <p>Get the values associated with the keys in the bucket. It returns a list of
-incoming-values that can be consumed to get the values.</p>
-<p>If any of the keys do not exist in the bucket, it returns an error.</p>
+incoming-value that can be consumed to get the value associated with the key.</p>
+<p>If any of the keys do not exist in the bucket, it returns an None value for
+that key in the list.</p>
+<p>Note that the key-value pairs are guaranteed to be returned in the same order</p>
+<p>MAY show an out-of-date value if there are concurrent writes to the bucket.</p>
+<p>If any other error occurs, it returns an error.</p>
 <h5>Params</h5>
 <ul>
 <li><a name="get_many.bucket"><a href="#bucket"><code>bucket</code></a></a>: <a href="#bucket"><a href="#bucket"><code>bucket</code></a></a></li>
@@ -738,23 +755,33 @@ incoming-values that can be consumed to get the values.</p>
 </ul>
 <h5>Return values</h5>
 <ul>
-<li><a name="get_many.0"></a> result&lt;list&lt;<a href="#incoming_value"><a href="#incoming_value"><code>incoming-value</code></a></a>&gt;, <a href="#error"><a href="#error"><code>error</code></a></a>&gt;</li>
+<li><a name="get_many.0"></a> result&lt;list&lt;option&lt;<a href="#incoming_value"><a href="#incoming_value"><code>incoming-value</code></a></a>&gt;&gt;, <a href="#error"><a href="#error"><code>error</code></a></a>&gt;</li>
 </ul>
 <h4><a name="get_keys"><code>get-keys: func</code></a></h4>
 <p>Get all the keys in the bucket. It returns a list of keys.</p>
+<p>Note that the keys are not guaranteed to be returned in any particular order.</p>
+<p>If the bucket is empty, it returns an empty list.</p>
+<p>MAY show an out-of-date list of keys if there are concurrent writes to the bucket.</p>
+<p>If any error occurs, it returns an error.</p>
 <h5>Params</h5>
 <ul>
 <li><a name="get_keys.bucket"><a href="#bucket"><code>bucket</code></a></a>: <a href="#bucket"><a href="#bucket"><code>bucket</code></a></a></li>
 </ul>
 <h5>Return values</h5>
 <ul>
-<li><a name="get_keys.0"></a> <a href="#keys"><a href="#keys"><code>keys</code></a></a></li>
+<li><a name="get_keys.0"></a> result&lt;<a href="#keys"><a href="#keys"><code>keys</code></a></a>, <a href="#error"><a href="#error"><code>error</code></a></a>&gt;</li>
 </ul>
 <h4><a name="set_many"><code>set-many: func</code></a></h4>
 <p>Set the values associated with the keys in the bucket. If the key already
 exists in the bucket, it overwrites the value.</p>
-<p>If any of the keys do not exist in the bucket, it creates a new key-value pair.
-If any other error occurs, it returns an error.</p>
+<p>Note that the key-value pairs are not guaranteed to be set in the order
+they are provided.</p>
+<p>If any of the keys do not exist in the bucket, it creates a new key-value pair.</p>
+<p>If any other error occurs, it returns an error. When an error occurs, it
+does not rollback the key-value pairs that were already set. Thus, this batch operation
+does not guarantee atomicity, implying that some key-value pairs could be
+set while others might fail.</p>
+<p>Other concurrent operations may also be able to see the partial results.</p>
 <h5>Params</h5>
 <ul>
 <li><a name="set_many.bucket"><a href="#bucket"><code>bucket</code></a></a>: <a href="#bucket"><a href="#bucket"><code>bucket</code></a></a></li>
@@ -766,8 +793,14 @@ If any other error occurs, it returns an error.</p>
 </ul>
 <h4><a name="delete_many"><code>delete-many: func</code></a></h4>
 <p>Delete the key-value pairs associated with the keys in the bucket.</p>
-<p>If any of the keys do not exist in the bucket, it skips the key.
-If any other error occurs, it returns an error.</p>
+<p>Note that the key-value pairs are not guaranteed to be deleted in the order
+they are provided.</p>
+<p>If any of the keys do not exist in the bucket, it skips the key.</p>
+<p>If any other error occurs, it returns an error. When an error occurs, it
+does not rollback the key-value pairs that were already deleted. Thus, this batch operation
+does not guarantee atomicity, implying that some key-value pairs could be
+deleted while others might fail.</p>
+<p>Other concurrent operations may also be able to see the partial results.</p>
 <h5>Params</h5>
 <ul>
 <li><a name="delete_many.bucket"><a href="#bucket"><code>bucket</code></a></a>: <a href="#bucket"><a href="#bucket"><code>bucket</code></a></a></li>
@@ -792,8 +825,9 @@ If any other error occurs, it returns an error.</p>
 ----
 <h3>Functions</h3>
 <h4><a name="on_set"><code>on-set: func</code></a></h4>
-<p>Handle the set event for the given bucket and key.
-It returns a incoming-value that can be consumed to get the value.</p>
+<p>Handle the <a href="#set"><code>set</code></a> event for the given bucket and key.
+It returns a <a href="#incoming_value"><code>incoming-value</code></a> that represents the new value being set.
+The new value can be consumed by the handler.</p>
 <h5>Params</h5>
 <ul>
 <li><a name="on_set.bucket"><a href="#bucket"><code>bucket</code></a></a>: <a href="#bucket"><a href="#bucket"><code>bucket</code></a></a></li>
@@ -801,7 +835,8 @@ It returns a incoming-value that can be consumed to get the value.</p>
 <li><a name="on_set.incoming_value"><a href="#incoming_value"><code>incoming-value</code></a></a>: <a href="#incoming_value"><a href="#incoming_value"><code>incoming-value</code></a></a></li>
 </ul>
 <h4><a name="on_delete"><code>on-delete: func</code></a></h4>
-<p>Handle the delete event for the given bucket and key.</p>
+<p>Handle the <a href="#delete"><code>delete</code></a> event for the given bucket and key.
+It returns a <a href="#key"><code>key</code></a> that represents the key being deleted.</p>
 <h5>Params</h5>
 <ul>
 <li><a name="on_delete.bucket"><a href="#bucket"><code>bucket</code></a></a>: <a href="#bucket"><a href="#bucket"><code>bucket</code></a></a></li>
