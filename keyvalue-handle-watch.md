@@ -22,7 +22,21 @@
 <hr />
 <h3>Types</h3>
 <h4><a name="error"><code>resource error</code></a></h4>
-<hr />
+<p>A resource which represents some error information.</p>
+<p>The only method provided by this resource is <code>to-debug-string</code>,
+which provides some human-readable information about the error.</p>
+<p>In the <code>wasi:io</code> package, this resource is returned through the
+<code>wasi:io/streams/stream-error</code> type.</p>
+<p>To provide more specific error information, other interfaces may
+provide functions to further &quot;downcast&quot; this error into more specific
+error information. For example, <a href="#error"><code>error</code></a>s returned in streams derived
+from filesystem types to be described using the filesystem's own
+error-code type, using the function
+<code>wasi:filesystem/types/filesystem-error-code</code>, which takes a parameter
+<code>borrow&lt;error&gt;</code> and returns
+<code>option&lt;wasi:filesystem/types/error-code&gt;</code>.</p>
+<h2>The set of functions which can &quot;downcast&quot; an <a href="#error"><code>error</code></a> into a more
+concrete type is open.</h2>
 <h3>Functions</h3>
 <h4><a name="method_error.to_debug_string"><code>[method]error.to-debug-string: func</code></a></h4>
 <p>Returns a string that is suitable to assist humans in debugging
@@ -45,7 +59,7 @@ at once.</p>
 <hr />
 <h3>Types</h3>
 <h4><a name="pollable"><code>resource pollable</code></a></h4>
-<hr />
+<h2><a href="#pollable"><code>pollable</code></a> epresents a single I/O event which may be ready, or not.</h2>
 <h3>Functions</h3>
 <h4><a name="method_pollable.ready"><code>[method]pollable.ready: func</code></a></h4>
 <p>Return the readiness of a pollable. This function never blocks.</p>
@@ -119,8 +133,21 @@ future operations.
 </li>
 </ul>
 <h4><a name="input_stream"><code>resource input-stream</code></a></h4>
+<p>An input bytestream.</p>
+<p><a href="#input_stream"><code>input-stream</code></a>s are <em>non-blocking</em> to the extent practical on underlying
+platforms. I/O operations always return promptly; if fewer bytes are
+promptly available than requested, they return the number of bytes promptly
+available, which could even be zero. To wait for data to be available,
+use the <code>subscribe</code> function to obtain a <a href="#pollable"><code>pollable</code></a> which can be polled
+for using <code>wasi:io/poll</code>.</p>
 <h4><a name="output_stream"><code>resource output-stream</code></a></h4>
-<hr />
+<p>An output bytestream.</p>
+<h2><a href="#output_stream"><code>output-stream</code></a>s are <em>non-blocking</em> to the extent practical on
+underlying platforms. Except where specified otherwise, I/O operations also
+always return promptly, after the number of bytes that can be written
+promptly, which could even be zero. To wait for the stream to be ready to
+accept data, the <code>subscribe</code> function to obtain a <a href="#pollable"><code>pollable</code></a> which can be
+polled for using <code>wasi:io/poll</code>.</h2>
 <h3>Functions</h3>
 <h4><a name="method_input_stream.read"><code>[method]input-stream.read: func</code></a></h4>
 <p>Perform a non-blocking read from the stream.</p>
